@@ -1,6 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Interfaces;
+
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Illuminate\Support\Collection;
 
