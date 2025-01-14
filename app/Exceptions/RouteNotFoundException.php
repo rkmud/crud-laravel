@@ -4,6 +4,6 @@ namespace App\Exceptions;
 
 use Exception;
 
-class RouteNotFoundException extends Exception
+final class RouteNotFoundException extends Exception
 {
 }

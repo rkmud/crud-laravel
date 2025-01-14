@@ -7,7 +7,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ShopifyController;
 use App\Providers\CsvDataProviderProvider;
-use \App\Exceptions\RouteNotFoundException;
+use App\Exceptions\RouteNotFoundException;
+use App\Services\BasicShopifyInteractor;
 
 Route::get('/', function () {
     return view('welcome');
@@ -23,14 +24,19 @@ Route::get('/posts/{id}', [PostController::class, 'show'])->name('posts.show');
 
 Route::delete('/posts/{id}', [PostController::class, 'destroy'])->name('posts.destroy');
 
-Route::get('/products', [ShopifyController::class, 'getProducts']);
-
-Route::get('/products/{format}', function(string $format, ShopifyController $controller) {
+Route::get('/products/{format}', function(string $format) {
+    $shopify = new BasicShopifyInteractor(
+        config('shopify-app.shop_domain'),
+        config('shopify-app.api_version'),
+        config('shopify-app.access_token')
+    );
     $formatter = match ($format) {
         'csv' => new CsvDataProviderProvider(),
         'txt' => new TxtDataProviderProvider(),
-        default => throw new RouteNotFoundException('Route not found: '.$format),
+        default => throw new RouteNotFoundException('Route not found: ' . $format),
     };
+
+    $controller = new ShopifyController($shopify);
 
     return $controller->showProduct($formatter);
 });

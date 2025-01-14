@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
 use App\Http\Interfaces\DataProviderInterface;
-use \Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Illuminate\Support\Collection;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class CsvDataProviderProvider implements DataProviderInterface
+final class CsvDataProviderProvider implements DataProviderInterface
 {
-    public function transformData(array $products): BinaryFileResponse
+    public function export(Collection $products): BinaryFileResponse
     {
         $csvFilePath = $this->getFilePath();
 
@@ -31,20 +34,20 @@ class CsvDataProviderProvider implements DataProviderInterface
         return $csvFilePath;
     }
 
-    private function writeData(string $csvFilePath, array $products): void
+    private function writeData(string $csvFilePath, Collection $products): void
     {
         $file = fopen($csvFilePath, 'w');
 
         fputcsv($file, ['id', 'title', 'description', 'price', 'image']);
 
-        foreach ($products['products'] as $product) {
-            $id = $product['id'];
-            $title = $product['title'];
-            $description = strip_tags($product['body_html']) ?? '';
-            $price = $product['variants'][0]['price'];
-            $image = $product['image']['src'] ?? null;
-
-            fputcsv($file, [$id, $title, $description, $price, $image]);
+        foreach ($products as $product) {
+            fputcsv($file, [
+                $product->id,
+                $product->title,
+                $product->description,
+                $product->price,
+                $product->image,
+            ]);
         }
 
         fclose($file);

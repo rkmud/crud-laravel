@@ -3,11 +3,12 @@
 namespace App\Providers;
 
 use App\Http\Interfaces\DataProviderInterface;
+use Illuminate\Support\Collection;
 use \Symfony\Component\HttpFoundation\BinaryFileResponse;
 
-class TxtDataProviderProvider implements DataProviderInterface
+final class TxtDataProviderProvider implements DataProviderInterface
 {
-    public function transformData(array $products): BinaryFileResponse
+    public function export(Collection $products): BinaryFileResponse
     {
         $txtFilePath = $this->getFilePath();
 
@@ -31,23 +32,24 @@ class TxtDataProviderProvider implements DataProviderInterface
         return $txtFilePath;
     }
 
-    private function writeData(string $filePath, array $products): void
+    private function writeData(string $filePath, Collection $products): void
     {
         $file = fopen($filePath, 'w');
 
-        if(!isset($products)){
+        if($products->isEmpty()){
             fwrite($file, "No products found in the data.\n");
         }
 
-        foreach ($products['products'] as $product) {
-            $title = $product['title'] ?? 'N/A';
-            $description = strip_tags($product['body_html'] ?? '');
-            $image = $product['image']['src'] ?? 'N/A';
-            $price = $product['variants'][0]['price'] ?? 'N/A';
-            $line = "Title: $title\nDescription: $description\nImage: $image\nPrice: $price\n\n";
+        foreach ($products as $product) {
+            $line = sprintf(
+                "Title: %s\nDescription: %s\nImage: %s\nPrice: %s\n\n",
+                $product->title,
+                strip_tags($product->description),
+                $product->image ?? 'N/A',
+                $product->price
+            );
             fwrite($file, $line);
         }
-
         fclose($file);
     }
 }
