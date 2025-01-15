@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Http\Interfaces\DataProviderInterface;
+use App\Http\Interfaces\ShouldCreateExportFileForShopifyProducts;
 use Symfony\Component\HttpFoundation\Response;
 use App\Http\Interfaces\ShouldInteractWithShopify;
+use App\Providers\CsvShopifyProductsExportFileCreator;
+use App\Providers\TxtShopifyProductsExportFileCreator;
+use App\Exceptions\RouteNotFoundException;
 
 final class ShopifyController extends Controller
 {
@@ -15,8 +18,23 @@ final class ShopifyController extends Controller
     ) {
     }
 
-   public function showProduct(DataProviderInterface $exporter): Response
+   public function showProduct(string $format): Response
    {
-       return $exporter->export($this->shopify->fetchProducts());
+       try {
+           $exporter = $this->getExporterByFormat($format);
+
+           return $exporter->export($this->shopify->fetchProducts());
+       } catch (RouteNotFoundException $exception) {
+           return response($exception->getMessage());
+       }
    }
+
+    public function getExporterByFormat(string $format): ShouldCreateExportFileForShopifyProducts
+    {
+        return match ($format) {
+            'csv' => new CsvShopifyProductsExportFileCreator(),
+            'txt' => new TxtShopifyProductsExportFileCreator(),
+            default => throw new RouteNotFoundException('Unsupported format: ' . $format),
+        };
+    }
 }

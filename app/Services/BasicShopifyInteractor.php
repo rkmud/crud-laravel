@@ -11,35 +11,23 @@ use App\DTOs\ProductDTO;
 
 final class BasicShopifyInteractor implements ShouldInteractWithShopify
 {
-    private string $shopDomain;
-    private string $apiVersion;
-    private string $accessToken;
+    private Client $client;
 
     public function __construct(string $shopDomain, string $apiVersion, string $accessToken)
     {
-        $this->shopDomain = $shopDomain;
-        $this->apiVersion = $apiVersion;
-        $this->accessToken = $accessToken;
+        $this->client = new Client([
+            'base_uri' => "https://{$shopDomain}/admin/api/{$apiVersion}/",
+            'headers' => [
+                'X-Shopify-Access-Token' => $accessToken,
+            ],
+        ]);
     }
 
     public function fetchProducts(): Collection
     {
-        $url = "https://{$this->shopDomain}/admin/api/{$this->apiVersion}/products.json";
-
-        $client = new Client();
-        $response = $client->get($url, [
-            'headers' => [
-                'X-Shopify-Access-Token' => $this->accessToken,
-            ],
-        ]);
+        $response = $this->client->get('products.json');
         $products = json_decode($response->getBody()->getContents(), true)['products'] ?? [];
 
-        return collect($products)->map(fn($product) => new ProductDTO(
-            id: (string)$product['id'],
-            title: $product['title'],
-            description: strip_tags($product['body_html'] ?? ''),
-            price: (string)($product['variants'][0]['price'] ?? '0'),
-            image: $product['image']['src'] ?? ''
-        ));
+        return ProductDTO::collect($products);
     }
 }
