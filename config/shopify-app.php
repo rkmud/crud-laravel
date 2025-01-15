@@ -150,7 +150,7 @@ return [
     |
     */
 
-    'app_name' => env('SHOPIFY_APP_NAME', 'Shopify App'),
+    'app_name' => env('SHOPIFY_APP_NAME', 'app'),
 
     /*
     |--------------------------------------------------------------------------
@@ -164,7 +164,7 @@ return [
     |
     */
 
-    'api_version' => env('SHOPIFY_API_VERSION', '2022-01'),
+    'api_version' => env('SHOPIFY_API_VERSION', '2024-10'),
 
     /*
     |--------------------------------------------------------------------------
@@ -196,6 +196,7 @@ return [
     | This option is for the scopes your application needs in the API.
     |
     */
+    'access_token' => env('SHOPIFY_ACCESS_TOKEN', ''),
 
     'api_scopes' => env('SHOPIFY_API_SCOPES', 'read_products,write_products,write_script_tags'),
 
@@ -290,7 +291,7 @@ return [
     */
 
     'myshopify_domain' => env('SHOPIFY_MYSHOPIFY_DOMAIN', 'myshopify.com'),
-
+    'shop_domain' => env('SHOPIFY_SHOP_DOMAIN', ''),
     /*
     |--------------------------------------------------------------------------
     | Enable Billing
